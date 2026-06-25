@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>斗地主 · 出牌的艺术与计算</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #fde9d7 0%, #f7d9b8 60%, #f5cba7 100%);
+      font-family: 'Segoe UI', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      max-width: 820px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 40px 40px 32px 32px;
+      padding: 3rem 2.5rem 2.8rem;
+      box-shadow: 0 18px 40px rgba(140, 80, 40, 0.15), 0 6px 12px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    @media (max-width: 540px) {
+      body {
+        padding: 1.2rem 0.8rem;
+      }
+      .card {
+        padding: 2rem 1.5rem 2.2rem;
+        border-radius: 28px;
+      }
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #4d2e1b;
+      margin-bottom: 0.2rem;
+      line-height: 1.2;
+    }
+
+    .subhead {
+      font-size: 1.05rem;
+      color: #82664e;
+      border-left: 4px solid #d9a47a;
+      padding-left: 1rem;
+      margin: 0.5rem 0 1.8rem 0;
+      font-weight: 400;
+    }
+
+    .intro {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #2e1f14;
+      margin-bottom: 1.4rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #4d2e1b;
+      border-bottom: 2px solid #efdacb;
+      padding-bottom: 0.4rem;
+      margin: 2rem 0 1rem 0;
+    }
+
+    p {
+      margin-bottom: 1.2rem;
+      line-height: 1.75;
+      color: #3b2b1f;
+      font-size: 1rem;
+    }
+
+    .blockquote {
+      background: #fbf4ed;
+      border-left: 5px solid #d9a47a;
+      padding: 1.2rem 1.6rem;
+      border-radius: 16px;
+      margin: 1.8rem 0 1.6rem 0;
+      font-style: normal;
+      color: #4d3627;
+    }
+
+    .blockquote p {
+      margin-bottom: 0.3rem;
+    }
+
+    .blockquote cite {
+      display: block;
+      margin-top: 0.5rem;
+      font-style: normal;
+      color: #8b6f58;
+      font-size: 0.9rem;
+    }
+
+    .btn-link-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin: 2rem 0 1.2rem;
+    }
+
+    .btn-link {
+      display: inline-block;
+      background: #e3cbb6;
+      color: #2e1f14;
+      padding: 0.6rem 1.6rem;
+      border-radius: 40px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .btn-link:hover {
+      background: #d7b69b;
+      transform: scale(1.02);
+    }
+
+    .btn-link.primary {
+      background: #b48360;
+      color: #fef9f4;
+    }
+
+    .btn-link.primary:hover {
+      background: #9f6e4d;
+    }
+
+    .faq-item {
+      margin-bottom: 1.5rem;
+    }
+
+    .faq-item h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #3e2b1d;
+      margin-bottom: 0.25rem;
+    }
+
+    .faq-item p {
+      margin-bottom: 0.2rem;
+      font-size: 0.95rem;
+      color: #5a4536;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #eddccf;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .sentence-link {
+      color: #b16238;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font-weight: 500;
+    }
+
+    .sentence-link:hover {
+      color: #7f4b2b;
+    }
+
+    .footer-note {
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+      color: #7a6453;
+      text-align: center;
+    }
+
+    .thin-space {
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>斗地主：手牌里的逻辑与张力</h1>
+    <div class="subhead">一份关于出牌、配牌与局面判断的整理笔记</div>
+
+    <p class="intro">
+      很多人觉得 <a href="https://pc-doudizhu.com" class="sentence-link">斗地主</a> 只是一款热闹的牌戏，实际上它包含了清晰的概率计算、逻辑推演和临时决策。每一手牌都是一次小型博弈，没有必胜的定式，但存在不少值得总结的原则。下面从几个角度梳理一下，供喜欢琢磨的朋友参考。
+    </p>
+
+    <div class="section-title">一、牌型与出牌节奏</div>
+    <p>
+      斗地主的基本牌型包括单张、对子、三张、顺子、连对、飞机、炸弹等。熟悉牌型组合只是第一步，更重要的是理解牌权转换的节奏。抢到牌权之后，是继续出长套，还是拆掉关键对子压制对手，往往取决于场上的剩余牌力和位置。很多时候，一手看似被动的牌，通过合理的“让牌”反而能等到反击机会。
+    </p>
+    <p>
+      农民之间的配合尤其依赖出牌顺序的默契。上家出小单，下家如果手中有大牌但不急于拦截，就可能给地主连续过牌的机会。反过来，上家主动顶大单，即便自己暂时无法接手，也能为同伴创造条件。这种节奏上的取舍，是牌局里最微妙的部分。
+    </p>
+
+    <div class="section-title">二、记牌与估算</div>
+    <p>
+      不需要记住每一张牌，但关注几个关键信息会更有把握：剩余王的位置、2 和 A 的分布，以及是否还有炸弹。这些信息能帮助判断对手的牌型弱点。比如，当外面已经没有 A，而你手中持有 K 和 Q，那么 K 就是相对安全的出牌点。再比如，地主出了一张 9，农民跟了一张 10，那很可能地主手上没有 9 以上的单牌，或者他想保留对子结构。
+    </p>
+    <p>
+      估算的意义不在于追求绝对准确，而是缩小不确定性。真正的高手往往不是靠运气，而是靠排除法做出更优决策。
+    </p>
+
+    <div class="blockquote">
+      <p>“斗地主里没有废牌，只有没想好的出牌顺序。拆牌之前先问问自己：这张牌现在出，代价是什么，收益又是什么？”</p>
+      <cite>—— 一位习惯用笔记复盘牌局的玩家</cite>
+    </div>
+
+    <div class="section-title">三、常见场景与应对思路</div>
+    <p>
+      <strong>场景一：</strong>地主底牌补进后，手牌非常整齐，甚至包含炸弹。此时农民不宜盲目抢牌，应优先消耗地主的炸弹或关键大牌，即便牺牲一手牌权也值得。一旦地主的炸弹被迫拆开，牌面结构就可能出现裂缝。<br>
+      <strong>场景二：</strong>农民只剩三张牌，且推测没有炸弹，地主如果手上有大牌，应优先打出单张或对子中的小牌，保留大牌作为最后控场。切忌一次性把长顺子全部打完，导致最后剩下一张小单被动。<br>
+      <strong>场景三：</strong>当游戏进入残局阶段，双方牌数都已很少，这时每一次出牌都是“明牌”博弈。如果有机会，尽量打出对手无法接上的牌型，或者故意留一手让对手误判。
+    </p>
+
+    <div class="section-title">四、关于平台与工具</div>
+    <p>
+      如果想找一个稳定、画面清晰、操作流畅的在线环境练习这些思路，可以试试 <a href="https://pc-doudizhu.com" class="sentence-link">斗地主</a> 这个站点。它保留了经典规则，界面干净，没有太多干扰元素，适合专注练习判断和节奏。无论是单机练习还是与人匹配，都能获得比较真实的牌局体验。
+    </p>
+
+    <hr>
+
+    <div class="section-title">常见问题摘要</div>
+
+    <div class="faq-item">
+      <h3>❓ 是不是每次都要拆炸弹才能赢？</h3>
+      <p>不一定。炸弹是最高牌权，但拆掉炸弹变成单张或对子，有时反而给对手可乘之机。保留炸弹制造威慑，或者用在最后关键牌权争夺中，往往收益更高。</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>❓ 农民之间怎么配合最有效？</h3>
+      <p>核心是信息交换。通过出牌的大小、牌型节奏传递意图。上家顶大牌，下家接手后出小牌回馈，这是最经典的配合模式。另外，不要轻易拆掉同伴已经控制住的牌型。</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>❓ 记不住牌怎么办？</h3>
+      <p>从记关键牌开始：王、2、A、K。每轮出牌后，在大脑里简单过一遍这些牌还剩几张。熟练后再加入对炸弹区域的印象。记牌是一种习惯，不是天赋。</p>
+    </div>
+
+    <div class="btn-link-group">
+      <a href="https://pc-doudizhu.com" class="btn-link primary">斗地主</a>
+      <a href="https://pc-doudizhu.com" class="btn-link">斗地主</a>
+    </div>
+
+    <div class="footer-note">
+      —— 整理于一次牌局后的笔记，内容仅供交流与思考
+    </div>
+  </div>
+</body>
+</html>
